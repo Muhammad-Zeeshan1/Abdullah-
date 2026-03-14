@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gulzar Forces Academy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050508;
+            --fg: #f0f0f5;
+            --accent: #f59e0b; /* Amber */
+            --secondary: #3b82f6; /* Blue */
+            --card: rgba(15, 15, 20, 0.7);
+            --border: #1f2937;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Source Sans Pro', sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            overflow-x: hidden;
+        }
+
+        .font-display { font-family: 'Bebas Neue', sans-serif; }
+
+        /* Progress Bar */
+        #progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--secondary));
+            z-index: 9999;
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        /* Intro Page */
+        #intro-page {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 1s ease, transform 1s ease;
+        }
+
+        #intro-page.hidden {
+            opacity: 0;
+            transform: scale(1.2);
+            pointer-events: none;
+        }
+
+        .intro-bg {
+            position: absolute;
+            inset: 0;
+            background-image: url('https://z-cdn-media.chatglm.cn/files/36c54964-f643-4d38-9d92-4647160d0a61.png?auth_key=1873508190-c7973e643c4d436d865e9bd5d7c260ed-0-9ee4d7e55aff951575db10a941791538');
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.6);
+        }
+
+        .intro-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4));
+        }
+
+        .intro-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        /* Main Page Animation */
+        .bg-animate {
+            background: linear-gradient(45deg, #050508, #0a0a15, #050508);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Canvas Layer - Covers Everything */
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Balls (4 colorful) */
+        .ball {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.9;
+        }
+
+        /* Glass Cards */
+        .glass-card {
+            background: var(--card);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        /* Ripple Effect */
+        .ripple-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple-btn::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+            background-repeat: no-repeat;
+            background-position: 50%;
+            transform: scale(10, 10);
+            opacity: 0;
+            transition: transform .5s, opacity 1s;
+        }
+        .ripple-btn:active::after {
+            transform: scale(0, 0);
+            opacity: .3;
+            transition: 0s;
+        }
+
+        /* Typewriter Cursor */
+        .typewriter-cursor {
+            border-right: 3px solid var(--accent);
+            animation: blink 0.7s step-end infinite;
+        }
+        @keyframes blink { from, to { border-color: transparent } 50% { border-color: var(--accent) } }
+
+        /* Back to Top */
+        #backToTop {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            background: var(--accent);
+            color: black;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 90;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        #backToTop.visible { opacity: 1; }
+
+        /* FAB WhatsApp */
+        .fab-whatsapp {
+            position: fixed;
+            bottom: 25px;
+            right: 20px;
+            background: #25D366;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 90;
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+            animation: pulse 2s infinite;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            padding: 20px;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-content {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+
+        /* Confetti Canvas */
+        #confetti-canvas { position: fixed; inset: 0; z-index: 1000; pointer-events: none; }
+
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s ease; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0f; }
+        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-animate">
+
+    <!-- Progress Bar -->
+    <div id="progress-bar"></div>
+
+    <!-- Main Background Canvas (Rain, Hexagon, Pentagon) -->
+    <canvas id="bg-canvas"></canvas>
+    
+    <!-- Confetti Canvas -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Intro Page -->
+    <div id="intro-page">
+        <div class="intro-bg"></div>
+        <div class="intro-overlay"></div>
+        <div class="intro-content">
+            <h1 class="font-display text-6xl md:text-8xl text-white mb-4 animate-pulse">THE KING AND THE HERO</h1>
+            <div class="h-1 w-32 bg-amber-500 mx-auto mb-6"></div>
+            <p class="font-display text-4xl md:text-6xl tracking-widest text-amber-400">ABDULLAH SAJJAD</p>
+        </div>
+    </div>
+
+    <!-- Main Page -->
+    <div id="main-page">
+        
+        <!-- Floating WhatsApp (Number: 03324453581 -> +923324453581) -->
+        <a href="https://wa.me/923324453581" target="_blank" class="fab-whatsapp" title="Chat on WhatsApp">
+            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        </a>
+
+        <!-- Back to Top -->
+        <button id="backToTop" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+            <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+        </button>
+
+        <!-- Navigation -->
+        <header class="fixed top-0 left-0 right-0 z-50 px-4 py-4 transition-all duration-300" id="navbar">
+            <nav class="max-w-7xl mx-auto glass-card px-6 py-3 flex items-center justify-between">
+                <div class="font-display text-2xl tracking-wider text-amber-400">GULZAR FORCES</div>
+                <div class="flex items-center gap-4">
+                    <button id="viewAdmissionsBtn" class="btn-secondary text-sm py-2">See Admissions</button>
+                    <button onclick="document.getElementById('colleges').scrollIntoView({behavior:'smooth'})" class="ripple-btn bg-amber-500 text-black px-4 py-2 rounded font-bold text-sm">Courses</button>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="min-h-screen flex items-center justify-center px-6 pt-24 relative z-10">
+            <div class="text-center max-w-4xl mx-auto">
+                <p class="text-amber-400 tracking-widest mb-4 reveal">PREMIER MILITARY TRAINING INSTITUTE</p>
+                <h1 class="font-display text-5xl md:text-8xl tracking-wide mb-4 reveal" style="transition-delay: 0.1s">
+                    GULZAR FORCES ACADEMY
+                </h1>
+                <div class="h-12 flex items-center justify-center text-xl md:text-2xl text-gray-300 mb-8 reveal" style="transition-delay: 0.2s">
+                    <span id="typewriter" class="typewriter-cursor pr-1"></span>
+                </div>
+                
+                <!-- Countdown Timer -->
+                <div class="mb-10 reveal" style="transition-delay: 0.3s">
+                    <p class="text-sm text-gray-400 mb-2">Next Batch Starting In:</p>
+                    <div class="flex justify-center gap-4 text-center">
+                        <div class="bg-black/30 backdrop-blur border border-amber-500/20 rounded-lg p-3 w-16 md:w-20">
+                            <span id="days" class="text-2xl md:text-3xl font-bold text-amber-400">00</span>
+                            <p class="text-xs text-gray-500">Days</p>
+                        </div>
+                        <div class="bg-black/30 backdrop-blur border border-amber-500/20 rounded-lg p-3 w-16 md:w-20">
+                            <span id="hours" class="text-2xl md:text-3xl font-bold text-amber-400">00</span>
+                            <p class="text-xs text-gray-500">Hours</p>
+                        </div>
+                        <div class="bg-black/30 backdrop-blur border border-amber-500/20 rounded-lg p-3 w-16 md:w-20">
+                            <span id="minutes" class="text-2xl md:text-3xl font-bold text-amber-400">00</span>
+                            <p class="text-xs text-gray-500">Min</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="document.getElementById('colleges').scrollIntoView({behavior:'smooth'})" class="ripple-btn bg-amber-500 text-black px-8 py-3 rounded-lg font-bold text-lg hover:bg-amber-400 transition reveal" style="transition-delay: 0.4s">
+                    Explore Colleges
+                </button>
+            </div>
+        </section>
+
+        <!-- Colleges Section (Separate Blocks) -->
+        <section id="colleges" class="py-20 px-6 relative z-10">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-16 reveal">
+                    <p class="text-amber-400 tracking-widest mb-2">SELECT YOUR PATH</p>
+                    <h2 class="font-display text-4xl md:text-5xl tracking-wide">MILITARY COLLEGES</h2>
+                    <p class="text-gray-500 mt-2 text-sm">Click on any card for details & admission</p>
+                </div>
+                
+                <!-- Grid of Separate College Cards -->
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    
+                    <!-- PMA Card -->
+                    <div class="glass-card p-6 cursor-pointer reveal college-card" data-college="pma">
+                        <div class="h-2 w-full bg-gradient-to-r from-amber-500 to-yellow-500 rounded-t mb-4"></div>
+                        <h3 class="font-display text-2xl tracking-wide text-white mb-2">PMA Kakul</h3>
+                        <p class="text-amber-400 text-sm mb-3">Pakistan Military Academy</p>
+                        <p class="text-gray-400 text-sm leading-relaxed">Premier institution for Army officers training. 2-year long course focusing on leadership, tactics, and physical endurance.</p>
+                        <div class="mt-4 flex justify-between items-center text-xs text-gray-500">
+                            <span>Location: Abbottabad</span>
+                            <span class="text-amber-400">Details →</span>
+                        </div>
+                    </div>
+
+                    <!-- PAF Card -->
+                    <div class="glass-card p-6 cursor-pointer reveal college-card" data-college="paf">
+                        <div class="h-2 w-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-t mb-4"></div>
+                        <h3 class="font-display text-2xl tracking-wide text-white mb-2">PAF Academy</h3>
+                        <p class="text-blue-400 text-sm mb-3">Pakistan Air Force</p>
+                        <p class="text-gray-400 text-sm leading-relaxed">Training institution for future pilots and aeronautical engineers. Located in Risalpur, focusing on aviation sciences.</p>
+                        <div class="mt-4 flex justify-between items-center text-xs text-gray-500">
+                            <span>Location: Risalpur</span>
+                            <span class="text-blue-400">Details →</span>
+                        </div>
+                    </div>
+
+                    <!-- Navy Card -->
+                    <div class="glass-card p-6 cursor-pointer reveal college-card" data-college="navy">
+                        <div class="h-2 w-full bg-gradient-to-r from-teal-500 to-green-500 rounded-t mb-4"></div>
+                        <h3 class="font-display text-2xl tracking-wide text-white mb-2">Pakistan Navy</h3>
+                        <p class="text-teal-400 text-sm mb-3">Cadet College</p>
+                        <p class="text-gray-400 text-sm leading-relaxed">Prepares cadets for naval operations and maritime strategy. Technical and combat training for naval services.</p>
+                        <div class="mt-4 flex justify-between items-center text-xs text-gray-500">
+                            <span>Location: Karachi</span>
+                            <span class="text-teal-400">Details →</span>
+                        </div>
+                    </div>
+
+                    <!-- ISSB Card -->
+                    <div class="glass-card p-6 cursor-pointer reveal college-card" data-college="issb">
+                        <div class="h-2 w-full bg-gradient-to-r from-red-500 to-pink-500 rounded-t mb-4"></div>
+                        <h3 class="font-display text-2xl tracking-wide text-white mb-2">ISSB</h3>
+                        <p class="text-red-400 text-sm mb-3">Selection Centers</p>
+                        <p class="text-gray-400 text-sm leading-relaxed">Rigorous 4-day selection process evaluating psychological fitness, leadership potential, and GTO tasks.</p>
+                        <div class="mt-4 flex justify-between items-center text-xs text-gray-500">
+                            <span>Multiple Cities</span>
+                            <span class="text-red-400">Details →</span>
+                        </div>
+                    </div>
+
+                    <!-- Hasan Abdal Card -->
+                    <div class="glass-card p-6 cursor-pointer reveal college-card" data-college="hasanabdal">
+                        <div class="h-2 w-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-t mb-4"></div>
+                        <h3 class="font-display text-2xl tracking-wide text-white mb-2">Cadet College</h3>
+                        <p class="text-purple-400 text-sm mb-3">Hasan Abdal</p>
+                        <p class="text-gray-400 text-sm leading-relaxed">One of the oldest and most prestigious cadet colleges. Entry from 8th class. Known for academic excellence.</p>
+                        <div class="mt-4 flex justify-between items-center text-xs text-gray-500">
+                            <span>Location: Hasan Abdal</span>
+                            <span class="text-purple-400">Details →</span>
+                        </div>
+                    </div>
+
+                    <!-- Jhelum Card -->
+                    <div class="glass-card p-6 cursor-pointer reveal college-card" data-college="jhelum">
+                        <div class="h-2 w-full bg-gradient-to-r from-orange-500 to-red-500 rounded-t mb-4"></div>
+                        <h3 class="font-display text-2xl tracking-wide text-white mb-2">Military College</h3>
+                        <p class="text-orange-400 text-sm mb-3">Jhelum (MCJ)</p>
+                        <p class="text-gray-400 text-sm leading-relaxed">Renowned institution providing quality education and military training to cadets from class 8th onwards.</p>
+                        <div class="mt-4 flex justify-between items-center text-xs text-gray-500">
+                            <span>Location: Jhelum</span>
+                            <span class="text-orange-400">Details →</span>
+                        </div>
+                    </div>
+
+                    <!-- Kohat Card -->
+                    <div class="glass-card p-6 cursor-pointer reveal college-card" data-college="kohat">
+                        <div class="h-2 w-full bg-gradient-to-r from-green-500 to-teal-500 rounded-t mb-4"></div>
+                        <h3 class="font-display text-2xl tracking-wide text-white mb-2">Cadet College</h3>
+                        <p class="text-green-400 text-sm mb-3">Kohat</p>
+                        <p class="text-gray-400 text-sm leading-relaxed">Located in scenic hills of Kohat, offering excellent academic and physical training programs.</p>
+                        <div class="mt-4 flex justify-between items-center text-xs text-gray-500">
+                            <span>Location: Kohat</span>
+                            <span class="text-green-400">Details →</span>
+                        </div>
+                    </div>
+
+                    <!-- Murree Card -->
+                    <div class="glass-card p-6 cursor-pointer reveal college-card" data-college="murree">
+                        <div class="h-2 w-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-t mb-4"></div>
+                        <h3 class="font-display text-2xl tracking-wide text-white mb-2">Military College</h3>
+                        <p class="text-cyan-400 text-sm mb-3">Murree</p>
+                        <p class="text-gray-400 text-sm leading-relaxed">Situated in beautiful hills of Murree, focusing on character building and quality education.</p>
+                        <div class="mt-4 flex justify-between items-center text-xs text-gray-500">
+                            <span>Location: Murree</span>
+                            <span class="text-cyan-400">Details →</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer id="contact" class="py-12 px-6 border-t border-gray-800 relative z-10">
+            <div class="max-w-6xl mx-auto text-center">
+                <h3 class="font-display text-2xl text-amber-400 mb-2">CONTACT US</h3>
+                <p class="text-gray-400">WhatsApp: 0332-4453581</p>
+                <p class="text-gray-500 text-sm mt-4">© 2024 Gulzar Forces Academy. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modals -->
+    <div id="collegeModal" class="modal-overlay">
+        <div class="modal-content p-8">
+            <button onclick="closeModal('collegeModal')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
+            <div id="modalContent"></div>
+            <div class="mt-8 pt-6 border-t border-gray-700">
+                <h4 class="font-display text-2xl tracking-wide mb-4">Admission Form</h4>
+                <form id="admissionForm" class="space-y-4">
+                    <input type="hidden" id="selectedCollege">
+                    <input type="text" id="studentName" class="w-full p-3 bg-gray-800 border border-gray-700 rounded" placeholder="Student Name" required>
+                    <input type="text" id="fatherName" class="w-full p-3 bg-gray-800 border border-gray-700 rounded" placeholder="Father's Name" required>
+                    <input type="tel" id="phone" class="w-full p-3 bg-gray-800 border border-gray-700 rounded" placeholder="Phone Number" required>
+                    <button type="submit" class="w-full bg-amber-500 text-black py-3 rounded font-bold hover:bg-amber-400 transition">Submit Request</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="admissionsModal" class="modal-overlay">
+        <div class="modal-content p-8">
+            <button onclick="closeModal('admissionsModal')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
+            <h3 class="font-display text-3xl tracking-wide mb-6 text-center">Recent Admissions</h3>
+            <div id="admissionListContainer" class="space-y-4 max-h-96 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- Data Store ---
+        let admissions = [
+            { name: "Ali Raza", father: "Muhammad Akram", college: "PMA", time: "2h ago" },
+            { name: "Hassan", father: "Kamal", college: "PAF", time: "5h ago" }
+        ];
+
+        const collegeData = {
+            pma: { title: "Pakistan Military Academy (PMA)", desc: "Located in Kakul, Abbottabad, PMA is the pride of the nation. It trains cadets for regular commissions in the Pakistan Army. The training spans over 2 years and includes military tactics, physical training, and academic studies." },
+            paf: { title: "Pakistan Air Force Academy", desc: "Located in Risalpur, this academy trains future pilots and aeronautical engineers. It offers courses in flying, engineering, and air defence." },
+            navy: { title: "Pakistan Navy Cadet College", desc: "Located in Manora, Karachi. It prepares young cadets for naval operations, maritime strategy, and technical training." },
+            issb: { title: "ISSB Selection Centers", desc: "Centers located in Kohat, Gujranwala, Malir, and Quetta. A rigorous 4-day selection process evaluating psychological fitness and leadership." },
+            hasanabdal: { title: "Cadet College Hasan Abdal", desc: "Established in 1954, it is one of the oldest and most prestigious cadet colleges in Pakistan." },
+            jhelum: { title: "Military College Jhelum (MCJ)", desc: "A renowned institution providing quality education and military training to young cadets from class 8th onwards." },
+            kohat: { title: "Cadet College Kohat", desc: "Located in the scenic hills of Kohat, offering excellent academic and physical training programs." },
+            murree: { title: "Military College Murree", desc: "Situated in the beautiful hills of Murree, providing high-quality education with a focus on character building." }
+        };
+
+        // --- Initialization ---
+        let rainDrops = [];
+        let balls = [];
+        let shapes = []; // For Hexagons and Pentagons
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Resize Canvas
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // 1. Intro Timer
+        setTimeout(() => {
+            document.getElementById('intro-page').classList.add('hidden');
+            document.getElementById('main-page').style.opacity = '1';
+            initEffects(); 
+            initTypewriter();
+            initEventListeners();
+        }, 3000);
+
+        // 2. Background Effects (Rain, Balls, Hexagons, Pentagons)
+        function initEffects() {
+            // Create Rain (everywhere)
+            for(let i=0; i<100; i++) {
+                rainDrops.push({ 
+                    x: Math.random()*canvas.width, 
+                    y: Math.random()*canvas.height, 
+                    l: Math.random()*20, 
+                    s: Math.random()*3+2, 
+                    color: `rgba(245, 158, 11, ${Math.random()*0.3})` 
+                });
+            }
+            
+            // Create Hexagons (6 sides) and Pentagons (5 sides)
+            for(let i=0; i<15; i++) { // Total 15 shapes
+                const isHex = Math.random() > 0.5;
+                shapes.push({ 
+                    x: Math.random()*canvas.width, 
+                    y: Math.random()*canvas.height, 
+                    size: Math.random()*30+20, 
+                    speed: Math.random()*0.5+0.2, 
+                    rotation: Math.random()*Math.PI*2,
+                    rotationSpeed: (Math.random()-0.5)*0.01,
+                    sides: isHex ? 6 : 5, // 6 for Hexagon, 5 for Pentagon
+                    color: isHex ? `rgba(59, 130, 246, ${Math.random()*0.2})` : `rgba(236, 72, 153, ${Math.random()*0.2})` // Blue or Pink
+                });
+            }
+
+            // Create 4 Balls
+            const colors = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502'];
+            for(let i=0; i<4; i++) {
+                const size = Math.floor(Math.random()*20) + 20;
+                const ball = document.createElement('div');
+                ball.className = 'ball';
+                ball.style.width = size+'px'; ball.style.height = size+'px';
+                ball.style.background = `radial-gradient(circle at 30% 30%, #fff, ${colors[i]})`;
+                document.body.appendChild(ball);
+                balls.push({ el: ball, x: Math.random()*innerWidth, y: Math.random()*innerHeight, vx: (Math.random()-0.5)*3, vy: (Math.random()-0.5)*3, s: size });
+            }
+
+            animate();
+        }
+
+        // Draw Polygon Function
+        function drawPolygon(x, y, radius, sides, rotation) {
+            ctx.beginPath();
+            for (let i = 0; i <= sides; i++) {
+                const angle = (i * 2 * Math.PI / sides) + rotation;
+                const px = x + radius * Math.cos(angle);
+                const py = y + radius * Math.sin(angle);
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.stroke();
+        }
+
+        function animate() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+
+            // 1. Draw Rain
+            ctx.lineWidth = 1;
+            rainDrops.forEach(d => {
+                ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(d.x, d.y+d.l); 
+                ctx.strokeStyle = d.color; ctx.stroke();
+                d.y += d.s;
+                if(d.y > canvas.height) { d.y = 0; d.x = Math.random()*canvas.width; }
+            });
+
+            // 2. Draw Shapes (Hexagons & Pentagons)
+            shapes.forEach(s => {
+                ctx.strokeStyle = s.color;
+                ctx.lineWidth = 2;
+                drawPolygon(s.x, s.y, s.size, s.sides, s.rotation);
+                
+                // Move shapes
+                s.y += s.speed;
+                s.rotation += s.rotationSpeed;
+                
+                // Reset if goes off screen
+                if(s.y > canvas.height + s.size) { 
+                    s.y = -s.size; 
+                    s.x = Math.random()*canvas.width; 
+                }
+            });
+
+            // 3. Move Balls
+            balls.forEach(b => {
+                b.x += b.vx; b.y += b.vy;
+                if(b.x<0 || b.x>innerWidth-b.s) b.vx*=-1;
+                if(b.y<0 || b.y>innerHeight-b.s) b.vy*=-1;
+                b.el.style.transform = `translate(${b.x}px, ${b.y}px)`;
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // 3. Event Listeners
+        function initEventListeners() {
+            // College Cards Click
+            document.querySelectorAll('.college-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const key = card.getAttribute('data-college');
+                    const data = collegeData[key];
+                    document.getElementById('selectedCollege').value = data.title;
+                    document.getElementById('modalContent').innerHTML = `<h3 class="font-display text-3xl text-amber-400 mb-4">${data.title}</h3><p class="text-gray-300 leading-relaxed">${data.desc}</p>`;
+                    document.getElementById('collegeModal').classList.add('active');
+                });
+            });
+
+            // Form Submit
+            document.getElementById('admissionForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('studentName').value;
+                admissions.unshift({ name: name, father: document.getElementById('fatherName').value, college: document.getElementById('selectedCollege').value, time: "Just now" });
+                closeModal('collegeModal');
+                confetti();
+                alert(`Thank you ${name}! Your request is submitted.`);
+            });
+
+            // View Admissions
+            document.getElementById('viewAdmissionsBtn').addEventListener('click', () => {
+                const list = document.getElementById('admissionListContainer');
+                list.innerHTML = admissions.map(a => `<div class="p-3 border-l-2 border-amber-500 bg-black/30 mb-2"><strong>${a.name}</strong> <span class="text-xs text-gray-400">(${a.time})</span><br><small class="text-amber-300">${a.college}</small></div>`).join('');
+                document.getElementById('admissionsModal').classList.add('active');
+            });
+
+            // Scroll Progress
+            window.addEventListener('scroll', () => {
+                const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrolled = (winScroll / height) * 100;
+                document.getElementById('progress-bar').style.width = scrolled + "%";
+                
+                const btn = document.getElementById('backToTop');
+                if (winScroll > 300) btn.classList.add('visible'); else btn.classList.remove('visible');
+            });
+        }
+
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        // 4. Typewriter
+        const phrases = ["Excellence in Military Training", "Join the Elite Forces", "Discipline & Determination"];
+        let pIndex = 0, cIndex = 0, isDeleting = false;
+        function initTypewriter() { type(); }
+        function type() {
+            const current = phrases[pIndex];
+            const el = document.getElementById('typewriter');
+            if(isDeleting) { el.textContent = current.substring(0, cIndex-1); cIndex--; }
+            else { el.textContent = current.substring(0, cIndex+1); cIndex++; }
+            if(!isDeleting && cIndex === current.length) { setTimeout(() => isDeleting=true, 1500); }
+            else if(isDeleting && cIndex === 0) { isDeleting=false; pIndex = (pIndex+1)%phrases.length; }
+            setTimeout(type, isDeleting ? 50 : 100);
+        }
+
+        // 5. Countdown Timer
+        function updateTimer() {
+            const future = new Date(); future.setDate(future.getDate() + 10);
+            const now = new Date();
+            const diff = future - now;
+            document.getElementById('days').textContent = Math.floor(diff / (1000*60*60*24));
+            document.getElementById('hours').textContent = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+            document.getElementById('minutes').textContent = Math.floor((diff % (1000*60*60)) / (1000*60));
+        }
+        setInterval(updateTimer, 1000); updateTimer();
+
+        // 6. Confetti
+        function confetti() {
+            const c = document.getElementById('confetti-canvas');
+            const ctx = c.getContext('2d');
+            c.width = window.innerWidth; c.height = window.innerHeight;
+            let pieces = [];
+            for(let i=0; i<100; i++) pieces.push({ x: Math.random()*c.width, y: Math.random()*c.height-c.height, w: 10, h: 10, color: `hsl(${Math.random()*360}, 70%, 50%)`, vy: Math.random()*5+2 });
+            function draw() {
+                ctx.clearRect(0,0,c.width,c.height);
+                pieces.forEach(p => { ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.w, p.h); p.y += p.vy; });
+                if(pieces.some(p => p.y < c.height)) requestAnimationFrame(draw);
+                else ctx.clearRect(0,0,c.width,c.height);
+            }
+            draw();
+        }
+
+        // Reveal Animation
+        const reveals = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('active'); });
+        }, { threshold: 0.1 });
+        reveals.forEach(el => observer.observe(el));
+
+    </script>
+</body>
+</html>
